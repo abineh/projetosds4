@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useEffect, useState } from 'react';
 import Chart from 'react-apexcharts';
 import { SaleSum } from 'types/sale';
 import { BASE_URL } from 'utils/requests';
@@ -9,9 +10,25 @@ type ChartData = {
 }
 
 const DonutChart = () => {
-    let chartData : ChartData = { series: [], labels: [] };
 
-    axios.get(`${BASE_URL}/sales/amount-by-seller`)
+    const [chartData, setChartData] = useState<ChartData>({ series: [], labels: [] });
+
+    useEffect(() => {
+        axios.get(`${BASE_URL}/sales/amount-by-seller`)
+            .then(response => {
+                const data = response.data as SaleSum[];
+                const mySeries = data.map(x => x.sum);
+                const myLabels = data.map(x => x.sellerName);
+
+                setChartData({ series: mySeries, labels: myLabels });
+            });
+    }, []);
+
+    //ERRADO DEVIDO ASYNC
+    //let chartData : ChartData = { series: [], labels: [] };
+
+    //ERRADO - CHAMA VARIAS VEZES
+    /*axios.get(`${BASE_URL}/sales/amount-by-seller`)
         .then(response => {
             const data = response.data as SaleSum[];
             const mySeries = data.map(x => x.sum);
@@ -19,7 +36,7 @@ const DonutChart = () => {
 
             chartData = { series: mySeries, labels: myLabels};
             console.log(chartData);
-        })
+        })*/
 
     //axios.get(BASE_URL + 'sales/amount-by-seller');
 
@@ -27,7 +44,7 @@ const DonutChart = () => {
         series: [477138, 499928, 444867, 220426, 473088],
         labels: ['Anakin', 'Barry Allen', 'Kal-El', 'Logan', 'Padmé']
     }*/
-    
+
     const options = {
         legend: {
             show: true
@@ -35,8 +52,8 @@ const DonutChart = () => {
     }
 
     return (
-        <Chart 
-            options={{...options, labels: chartData.labels}}
+        <Chart
+            options={{ ...options, labels: chartData.labels }}
             series={chartData.series}
             type="donut"
             height="240"
